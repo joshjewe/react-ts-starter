@@ -7,6 +7,7 @@ import { delay } from './shared/helper';
 function App(): JSX.Element {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     async function getTodos(): Promise<void> {
@@ -17,12 +18,16 @@ function App(): JSX.Element {
 
         await delay(2000);
 
+        // throw new Error('BAD');
+
         const { response: todoItem } = (await response.json()) as TodoResponse;
 
         setTodos([todoItem]);
         setIsLoading(false);
+        setIsError(false);
       } catch {
         setIsLoading(false);
+        setIsError(true);
       }
     }
 
@@ -45,6 +50,14 @@ function App(): JSX.Element {
   );
 
   const renderTodoList = useMemo(() => {
+    if (isError) {
+      return (
+        <div className="wrapper">
+          <div className="loading"> Something went wrong ...</div>
+        </div>
+      );
+    }
+
     if (!isLoading) {
       return <TodoList items={todos} removeTodo={removeTodo} />;
     }
@@ -54,7 +67,7 @@ function App(): JSX.Element {
         <div className="loading"> Is loading ...</div>
       </div>
     );
-  }, [isLoading, removeTodo, todos]);
+  }, [isError, isLoading, removeTodo, todos]);
 
   return (
     <div className="App">
